@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:test
+    jpa:
+      hibernate:
+        ddl-auto: none
+
+  flyway:
+    url: "jdbc:h2:mem:test;MODE=mySql"
+    user: sa
+    password:
+    baseline-on-migrate: true
