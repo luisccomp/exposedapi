@@ -1,4 +1,4 @@
-package br.com.luisccomp.exposedapi.domain.core.model.request.customer
+package br.com.luisccomp.exposedapi.domain.core.model.request.contact
 
 import javax.validation.constraints.Email
 import javax.validation.constraints.NotEmpty

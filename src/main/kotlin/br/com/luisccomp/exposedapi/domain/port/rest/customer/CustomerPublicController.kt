@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 @RequestMapping(CUSTOMER_PUBLIC_RESOURCE)
 interface CustomerPublicController {
 
-    @PostMapping(CUSTOMER_PUBLIC_RESOURCE_REGISTER)
+    @PostMapping
     fun register(customerCreateRequest: CustomerCreateRequest): ResponseEntity<Any>
 
 }

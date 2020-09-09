@@ -1,8 +1,9 @@
-package br.com.luisccomp.exposedapi.adapter.rest.customer
+package br.com.luisccomp.exposedapi.adapter.rest.contact
 
-import br.com.luisccomp.exposedapi.domain.core.model.request.customer.ContactCreateRequest
+import br.com.luisccomp.exposedapi.domain.core.model.entity.contact.Contact
+import br.com.luisccomp.exposedapi.domain.core.model.request.contact.ContactCreateRequest
 import br.com.luisccomp.exposedapi.domain.port.ResourceSchema
-import br.com.luisccomp.exposedapi.domain.port.service.ContactService
+import br.com.luisccomp.exposedapi.domain.port.service.contact.ContactService
 import br.com.luisccomp.exposedapi.domain.port.service.customer.CustomerService
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.DisplayName
@@ -23,6 +24,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.util.*
+import kotlin.collections.ArrayList
 
 @ExtendWith(SpringExtension::class)
 @ActiveProfiles("test")
@@ -77,6 +79,14 @@ class ContactPublicControllerTest {
 
         verify(contactService, times(1))
                 .register(any(UUID::class.java), any(ContactCreateRequest::class.java))
+    }
+
+    @Test
+    @DisplayName("Should return a page of contacts")
+    fun `return a page of contacts test`() {
+        val result = ArrayList<Contact>()
+
+        val uuid = UUID.randomUUID()
     }
 
 }
