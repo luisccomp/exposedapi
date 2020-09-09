@@ -14,7 +14,10 @@ import javax.validation.Valid
 interface ContactPublicController {
 
     @GetMapping
-    fun findAll(@PathVariable uuid: UUID, pageable: Pageable): ResponseEntity<Page<ContactResponse>>
+    fun findAll(@PathVariable uuid: UUID, pageable: Pageable): Page<ContactResponse>
+
+    @GetMapping("/{id}")
+    fun findById(@PathVariable uuid: UUID, @PathVariable id: Long): ContactResponse
 
     @PostMapping
     fun register(@PathVariable uuid: UUID,
