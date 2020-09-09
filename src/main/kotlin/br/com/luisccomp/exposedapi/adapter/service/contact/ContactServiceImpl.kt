@@ -6,6 +6,7 @@ import br.com.luisccomp.exposedapi.domain.core.model.mapping.contact.ContactTabl
 import br.com.luisccomp.exposedapi.domain.core.model.mapping.customer.CustomerTable
 import br.com.luisccomp.exposedapi.domain.core.model.request.contact.ContactCreateRequest
 import br.com.luisccomp.exposedapi.domain.port.service.contact.ContactService
+import br.com.luisccomp.exposedapi.shared.exception.BadRequestException
 import br.com.luisccomp.exposedapi.shared.exception.NotFoundException
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -16,6 +17,16 @@ import kotlin.collections.ArrayList
 
 @Service
 class ContactServiceImpl : ContactService {
+
+    override fun delete(uuid: UUID, id: Long) {
+        val contact = (transaction {
+            Contact.find {
+                ContactTable.id.eq(id) and ContactTable.customerId.eq(uuid)
+            }.toList().firstOrNull()
+        }?: throw NotFoundException("Contact not found"))
+
+        transaction { contact.delete() }
+    }
 
     override fun findAll(uuid: UUID): List<Contact> {
         val result = ArrayList<Contact>()
@@ -64,6 +75,24 @@ class ContactServiceImpl : ContactService {
                 customer = customerFound
             }
         } .id.value
+    }
+
+    override fun update(uuid: UUID, contactCreateRequest: ContactCreateRequest, id: Long): Contact {
+        transaction { Customer.findById(uuid) }?: throw BadRequestException("Customer not found")
+
+        val contact = transaction {
+            Contact.find { ContactTable.id.eq(id) and ContactTable.customerId.eq(uuid) }
+                    .toList()
+                    .firstOrNull()
+        }?: throw NotFoundException("Contact not found")
+
+        return transaction {
+            contact.name = contactCreateRequest.name
+            contact.email = contactCreateRequest.email
+            contact.phone = contactCreateRequest.phone
+
+            contact
+        }
     }
 
 }

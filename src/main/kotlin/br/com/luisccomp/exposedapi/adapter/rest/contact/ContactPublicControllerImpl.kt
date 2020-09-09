@@ -25,11 +25,13 @@ import java.util.stream.Collectors
 class ContactPublicControllerImpl(private val customerService: CustomerService,
                                   private val contactService: ContactService,
                                   private val contactComponent: ContactComponent) : ContactPublicController {
+    override fun delete(uuid: UUID, id: Long) {
+        customerService.findById(uuid)?: throw BadRequestException("Customer not found")
+        contactService.delete(uuid, id)
+    }
 
     override fun findAll(uuid: UUID, pageable: Pageable): Page<ContactResponse> {
-        if (!customerService.existsById(uuid)) {
-            throw BadRequestException("Customer not found")
-        }
+        customerService.findById(uuid)?: throw BadRequestException("Customer not found")
 
         val result = transaction { contactService.findAll(uuid, pageable)
                 .stream()
@@ -44,7 +46,7 @@ class ContactPublicControllerImpl(private val customerService: CustomerService,
     override fun findById(uuid: UUID, id: Long): ContactResponse {
         val contact = contactService.findById(uuid, id)?: NotFoundException("Contact not found")
 
-        return contactComponent.toContactResponse(contact as Contact)
+        return transaction { contactComponent.toContactResponse(contact as Contact) }
     }
 
     override fun register(uuid: UUID, contactCreateRequest: ContactCreateRequest): ResponseEntity<Any> {
@@ -53,6 +55,10 @@ class ContactPublicControllerImpl(private val customerService: CustomerService,
         return ResponseEntity
                 .created(URI("/$CUSTOMER_PUBLIC_RESOURCE/${uuid}/contacts/${id}"))
                 .build()
+    }
+
+    override fun update(uuid: UUID, id: Long, contactCreateRequest: ContactCreateRequest): ContactResponse {
+        return transaction { contactComponent.toContactResponse(contactService.update(uuid, contactCreateRequest, id)) }
     }
 
 }

@@ -13,6 +13,9 @@ import javax.validation.Valid
 @RequestMapping(CONTACT_PUBLIC_RESOURCE)
 interface ContactPublicController {
 
+    @DeleteMapping("/{id}")
+    fun delete(@PathVariable uuid: UUID, @PathVariable id: Long)
+
     @GetMapping
     fun findAll(@PathVariable uuid: UUID, pageable: Pageable): Page<ContactResponse>
 
@@ -22,5 +25,10 @@ interface ContactPublicController {
     @PostMapping
     fun register(@PathVariable uuid: UUID,
                  @RequestBody @Valid contactCreateRequest: ContactCreateRequest): ResponseEntity<Any>
+
+    @PutMapping("/{id}")
+    fun update(@PathVariable uuid: UUID,
+               @PathVariable id: Long,
+               @RequestBody @Valid contactCreateRequest: ContactCreateRequest): ContactResponse
 
 }

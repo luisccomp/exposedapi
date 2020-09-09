@@ -8,6 +8,8 @@ import java.util.UUID
 
 interface ContactService {
 
+    fun delete(uuid: UUID, id: Long)
+
     fun findAll(uuid: UUID): List<Contact>
 
     fun findAll(uuid: UUID, pageable: Pageable): List<Contact>
@@ -15,5 +17,7 @@ interface ContactService {
     fun findById(uuid: UUID, id: Long): Contact?
 
     fun register(uuid: UUID, contactCreateRequest: ContactCreateRequest): Long
+
+    fun update(uuid: UUID, contactCreateRequest: ContactCreateRequest, id: Long): Contact
 
 }
