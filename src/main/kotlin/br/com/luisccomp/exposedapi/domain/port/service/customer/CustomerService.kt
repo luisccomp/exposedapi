@@ -13,7 +13,7 @@ interface CustomerService {
 
     fun findAll(pageable: Pageable): List<Customer>
 
-    fun findById(uuid: UUID): Customer?
+    fun findById(uuid: UUID): Customer
 
     fun register(customerCreateRequest: CustomerCreateRequest): UUID
 

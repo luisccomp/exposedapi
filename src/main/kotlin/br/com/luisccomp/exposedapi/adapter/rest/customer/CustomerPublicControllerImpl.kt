@@ -37,9 +37,9 @@ class CustomerPublicControllerImpl(private val customerService: CustomerService,
     }
 
     override fun findById(uuid: UUID): CustomerResponse {
-        val customer = customerService.findById(uuid)?: NotFoundException("Customer not found")
+        val customer = customerService.findById(uuid)
 
-        return transaction { customerComponent.toCustomerResponse(customer as Customer) }
+        return transaction { customerComponent.toCustomerResponse(customer) }
     }
 
     override fun register(customerCreateRequest: CustomerCreateRequest): ResponseEntity<Any> {

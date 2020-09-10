@@ -20,6 +20,7 @@ object CustomerTable : UUIDTable(name = "$SCHEMA_CUSTOMER.$TABLE_NAME", columnNa
     val lastName = varchar(COLUMN_LAST_NAME_NAME, COLUMN_LAST_NAME_LENGTH)
 
     val email = varchar(COLUMN_EMAIL_NAME, COLUMN_EMAIL_LENGTH)
+            .uniqueIndex("customer_mail_un")
 
     val phone = varchar(COLUMN_PHONE_NAME, COLUMN_PHONE_LENGTH)
 

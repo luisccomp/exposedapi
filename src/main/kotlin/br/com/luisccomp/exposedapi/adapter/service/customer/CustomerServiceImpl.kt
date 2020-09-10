@@ -4,6 +4,7 @@ import br.com.luisccomp.exposedapi.domain.core.model.entity.customer.Customer
 import br.com.luisccomp.exposedapi.domain.core.model.mapping.customer.CustomerTable
 import br.com.luisccomp.exposedapi.domain.core.model.request.customer.CustomerCreateRequest
 import br.com.luisccomp.exposedapi.domain.port.service.customer.CustomerService
+import br.com.luisccomp.exposedapi.shared.exception.BadRequestException
 import br.com.luisccomp.exposedapi.shared.exception.NotFoundException
 import org.jetbrains.exposed.sql.StdOutSqlLogger
 import org.jetbrains.exposed.sql.addLogger
@@ -27,11 +28,9 @@ class CustomerServiceImpl : CustomerService {
 
     override fun existsById(uuid: UUID): Boolean {
         return transaction {
-            addLogger(StdOutSqlLogger)
-
-            Customer.find { CustomerTable.id.eq(uuid)}
-                    .toList()
-        } .firstOrNull() == null
+            Customer.find { CustomerTable.id eq uuid }
+                    .count()
+        } > 0
     }
 
     override fun findAll(pageable: Pageable): List<Customer> {
@@ -42,14 +41,21 @@ class CustomerServiceImpl : CustomerService {
         }
     }
 
-    override fun findById(uuid: UUID): Customer? {
-        return transaction {
+    override fun findById(uuid: UUID): Customer {
+        return (transaction {
             addLogger(StdOutSqlLogger)
             Customer.findById(uuid)
-        }
+        }?: throw NotFoundException("Customer not found"))
     }
 
     override fun register(customerCreateRequest: CustomerCreateRequest): UUID {
+        transaction {
+            Customer.find { CustomerTable.email eq customerCreateRequest.email }
+                    .toList()
+                    .stream()
+                    .findFirst()
+        }.ifPresent { throw BadRequestException("Email already in use") }
+
         val customer = transaction {
             Customer.new {
                 firstName = customerCreateRequest.firstName
