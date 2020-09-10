@@ -49,14 +49,10 @@ class CustomerServiceImpl : CustomerService {
     }
 
     override fun register(customerCreateRequest: CustomerCreateRequest): UUID {
-        transaction {
-            Customer.find { CustomerTable.email eq customerCreateRequest.email }
-                    .toList()
-                    .stream()
-                    .findFirst()
-        }.ifPresent { throw BadRequestException("Email already in use") }
-
         val customer = transaction {
+            Customer.find { CustomerTable.email eq customerCreateRequest.email }
+                    .firstOrNull()?.let { throw BadRequestException("Email already in use") }
+
             Customer.new {
                 firstName = customerCreateRequest.firstName
                 lastName = customerCreateRequest.lastName

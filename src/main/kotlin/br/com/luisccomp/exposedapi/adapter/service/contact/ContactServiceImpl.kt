@@ -19,13 +19,14 @@ import kotlin.collections.ArrayList
 class ContactServiceImpl : ContactService {
 
     override fun delete(uuid: UUID, id: Long) {
-        val contact = (transaction {
-            Contact.find {
-                ContactTable.id.eq(id) and ContactTable.customerId.eq(uuid)
-            }.toList().firstOrNull()
-        }?: throw NotFoundException("Contact not found"))
+        transaction {
+            Customer.findById(uuid)?: throw BadRequestException("Customer not found")
 
-        transaction { contact.delete() }
+            val contact = Contact.find { (ContactTable.id eq id) and (ContactTable.customerId eq uuid) }
+                    .firstOrNull()?: throw NotFoundException("Contact not found")
+
+            contact.delete()
+        }
     }
 
     override fun findAll(uuid: UUID): List<Contact> {
@@ -63,11 +64,9 @@ class ContactServiceImpl : ContactService {
     }
 
     override fun register(uuid: UUID, contactCreateRequest: ContactCreateRequest): Long {
-        val customerFound = transaction {
-            Customer.findById(uuid)
-        } ?: throw NotFoundException("Customer not found")
-
         return transaction {
+            val customerFound = (Customer.findById(uuid) ?: throw BadRequestException("Customer not found"))
+
             Contact.new {
                 name = contactCreateRequest.name
                 email = contactCreateRequest.email
