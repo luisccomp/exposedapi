@@ -182,4 +182,39 @@ class CustomerServiceTest {
                 .hasMessage("Customer not found")
     }
 
+    @Test
+    @DisplayName("Should update a customer")
+    fun `update customer's information`() {
+        val uuid = transaction {
+            Customer.new {
+                firstName = "FName"
+                lastName = "LName"
+                email = "c_mail@mail.com"
+                phone = "99000-0000"
+            }
+        }.id.value
+
+        val customerCreateRequest = createCustomerCreateRequest()
+
+        val customer = customerService.update(customerCreateRequest, uuid)
+
+        assertThat(customer.firstName).isEqualTo(customerCreateRequest.firstName)
+        assertThat(customer.lastName).isEqualTo(customerCreateRequest.lastName)
+        assertThat(customer.email).isEqualTo(customerCreateRequest.email)
+        assertThat(customer.phone).isEqualTo(customerCreateRequest.phone)
+    }
+
+    @Test
+    @DisplayName("Should throw an error when try to update a customer that doesn't exists")
+    fun `update a customer thad doesn't exists`() {
+        val uuid = UUID.randomUUID()
+
+        val customerCreateRequest = createCustomerCreateRequest()
+
+        val exception = catchThrowable { customerService.update(customerCreateRequest, uuid) }
+
+        assertThat(exception).isInstanceOf(NotFoundException::class.java)
+                .hasMessage("Customer not found")
+    }
+
 }
