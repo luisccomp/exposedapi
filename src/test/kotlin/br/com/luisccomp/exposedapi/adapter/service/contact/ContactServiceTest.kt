@@ -164,4 +164,84 @@ class ContactServiceTest {
                 .hasMessage("Customer not found")
     }
 
+    @Test
+    @DisplayName("Should update a contact information")
+    fun `update a contact of a customer test`() {
+        val id = transaction {
+            val customerFound = Customer.findById(uuid)!!
+
+            Contact.new {
+                name = "Contact Name"
+                email = "contact_email@pmail.com"
+                phone = "99999-8888"
+                customer = customerFound
+            }.id.value
+        }
+
+        val contactCreateRequest = createContactCreateRequest()
+
+        val contact = contactService.update(uuid, contactCreateRequest, id)
+
+        assertThat(contact.name).isEqualTo(contactCreateRequest.name)
+        assertThat(contact.email).isEqualTo(contactCreateRequest.email)
+        assertThat(contact.phone).isEqualTo(contact.phone)
+    }
+
+    @Test
+    @DisplayName("Should throw an error when try to update a contact that doesn't exists")
+    fun `update a contact that doesn't exists test`() {
+        val contactCreateRequest = createContactCreateRequest()
+
+        val exception = catchThrowable { contactService.update(uuid, contactCreateRequest, 1L) }
+
+        assertThat(exception).isInstanceOf(NotFoundException::class.java)
+                .hasMessage("Contact not found")
+    }
+
+    @Test
+    @DisplayName("Should throw an error when try to update a contact of a customer that doesn't exists")
+    fun `update a contact of a customer that doesn't exists`() {
+        val uuid = getInvalidUUID()
+
+        val contactCreateRequest = createContactCreateRequest()
+
+        val exception = catchThrowable { contactService.update(uuid, contactCreateRequest, 1L) }
+
+        assertThat(exception).isInstanceOf(BadRequestException::class.java)
+                .hasMessage("Customer not found")
+    }
+
+    @Test
+    @DisplayName("Should return contact's details")
+    fun `get contact's details test`() {
+        val contactCreateRequest = createContactCreateRequest()
+
+        val id = transaction {
+            val customerFound = Customer.findById(uuid)!!
+
+            Contact.new {
+                name = contactCreateRequest.name
+                email = contactCreateRequest.email
+                phone = contactCreateRequest.phone
+                customer = customerFound
+            }.id.value
+        }
+
+        val contact = contactService.findById(uuid, id)
+
+        assertThat(contact?.id?.value).isEqualTo(id)
+        assertThat(contact?.name).isEqualTo(contactCreateRequest.name)
+        assertThat(contact?.email).isEqualTo(contactCreateRequest.email)
+        assertThat(contact?.phone).isEqualTo(contactCreateRequest.phone)
+    }
+
+    @Test
+    @DisplayName("Should throw an error when try to get contact's information that doesn't exists")
+    fun `get contact's details that doesn't exists test`() {
+        val exception = catchThrowable { contactService.findById(uuid, 1L) }
+
+        assertThat(exception).isInstanceOf(NotFoundException::class.java)
+                .hasMessage("Contact not found")
+    }
+
 }
