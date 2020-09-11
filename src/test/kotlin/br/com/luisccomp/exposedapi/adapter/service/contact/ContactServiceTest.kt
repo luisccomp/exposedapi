@@ -244,4 +244,13 @@ class ContactServiceTest {
                 .hasMessage("Contact not found")
     }
 
+    @Test
+    @DisplayName("Should throw an error when try to get details of a contact of a customer that doesn't exists")
+    fun `get contact's details of a customer that doesn't exists`() {
+        val exception = catchThrowable { contactService.findById(getInvalidUUID(), 1L) }
+
+        assertThat(exception).isInstanceOf(BadRequestException::class.java)
+                .hasMessage("Customer not found")
+    }
+
 }

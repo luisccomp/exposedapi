@@ -55,11 +55,11 @@ class ContactServiceImpl : ContactService {
 
     override fun findById(uuid: UUID, id: Long): Contact? {
         return transaction {
-            addLogger(StdOutSqlLogger)
+            Customer.findById(uuid) ?: throw BadRequestException("Customer not found")
 
             Contact.find {
                 ContactTable.id.eq(id) and ContactTable.customerId.eq(uuid)
-            }.toList().firstOrNull()
+            }.firstOrNull() ?: throw NotFoundException("Contact not found")
         }
     }
 
