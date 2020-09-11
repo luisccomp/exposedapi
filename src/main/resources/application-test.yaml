@@ -9,7 +9,7 @@ spring:
         ddl-auto: none
 
   flyway:
-    url: "jdbc:h2:mem:test;MODE=mySql"
+    url: jdbc:h2:mem:test;MODE=mySql;INIT=RUNSCRIPT FROM 'D:\\Users\\Chuno\\.ideaprojects\\exposedapi\\src\\test\\resources\\db.migration\\test.sql'
     user: sa
     password:
     baseline-on-migrate: true

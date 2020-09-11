@@ -13,9 +13,7 @@ import org.jetbrains.exposed.sql.Schema
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.jdbc.DataSourceBuilder
@@ -31,9 +29,10 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.util.*
 
-@SpringBootTest
 @ActiveProfiles("test")
+@SpringBootTest
 @AutoConfigureMockMvc
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CustomerPublicControllerTest {
 
     @Autowired
@@ -49,8 +48,25 @@ class CustomerPublicControllerTest {
                         "99999-1234")
     }
 
-    @BeforeEach
+    @BeforeAll
     fun setUp() {
+        Database.connect(DataSourceBuilder.create()
+                .url("jdbc:h2:mem:test")
+                .driverClassName("org.h2.Driver")
+                .username("sa")
+                .password("")
+                .build())
+
+       transaction {
+            SchemaUtils.createSchema(Schema(br.com.luisccomp.exposedapi.domain.core.constant.Schema.SCHEMA_CUSTOMER))
+            SchemaUtils.createSchema(Schema(br.com.luisccomp.exposedapi.domain.core.constant.Schema.SCHEMA_CONTACT))
+            SchemaUtils.create(CustomerTable)
+            SchemaUtils.create(ContactTable)
+        }
+    }
+
+    @BeforeEach
+    fun clearDb() {
         transaction {
             CustomerTable.deleteAll()
         }

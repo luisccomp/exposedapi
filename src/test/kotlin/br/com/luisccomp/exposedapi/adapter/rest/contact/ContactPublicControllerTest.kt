@@ -1,92 +1,102 @@
 package br.com.luisccomp.exposedapi.adapter.rest.contact
 
+import br.com.luisccomp.exposedapi.adapter.service.contact.ContactServiceTest.Companion.createContactCreateRequest
+import br.com.luisccomp.exposedapi.domain.core.constant.Schema
 import br.com.luisccomp.exposedapi.domain.core.model.entity.contact.Contact
-import br.com.luisccomp.exposedapi.domain.core.model.request.contact.ContactCreateRequest
-import br.com.luisccomp.exposedapi.domain.port.ResourceSchema
-import br.com.luisccomp.exposedapi.domain.port.service.contact.ContactService
-import br.com.luisccomp.exposedapi.domain.port.service.customer.CustomerService
+import br.com.luisccomp.exposedapi.domain.core.model.entity.customer.Customer
+import br.com.luisccomp.exposedapi.domain.core.model.mapping.contact.ContactTable
+import br.com.luisccomp.exposedapi.domain.core.model.mapping.customer.CustomerTable
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.BDDMockito.given
-import org.mockito.BDDMockito.times
-import org.mockito.Mockito
-import org.mockito.Mockito.verify
+import org.assertj.core.api.Assertions.assertThat
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.deleteAll
+import org.jetbrains.exposed.sql.transactions.transaction
+import org.junit.jupiter.api.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.jdbc.DataSourceBuilder
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.util.*
-import kotlin.collections.ArrayList
 
-@ExtendWith(SpringExtension::class)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @WebMvcTest
+@SpringBootTest
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ContactPublicControllerTest {
 
-    @MockBean
-    private lateinit var contactService: ContactService
-
-    @MockBean
-    private lateinit var customerService: CustomerService
+    lateinit var uuid: UUID
 
     @Autowired
-    private lateinit var mvc: MockMvc
+    lateinit var mvc: MockMvc
 
-    private val objectMapper: ObjectMapper = ObjectMapper()
+    val objectMapper = ObjectMapper()
 
     companion object {
-        const val CONTACT_API = "/${ResourceSchema.CustomerResources.CUSTOMER_PUBLIC_RESOURCE}/%s/contacts"
-
-        fun createContactCreateRequest(): ContactCreateRequest =
-                createContactCreateRequest("ContactName", "contact_email@provider.com", "99999-1111")
-
-        fun createContactCreateRequest(name: String, email: String, phone: String): ContactCreateRequest =
-                ContactCreateRequest(name, email, phone)
+        const val CONTACT_API = "/public/api/v1/customers/%s/contacts"
     }
 
-    fun <T> any(): T = Mockito.any()
+    @BeforeAll
+    fun setUp() {
+        Database.connect(DataSourceBuilder.create()
+                .url("jdbc:h2:mem:test")
+                .driverClassName("org.h2.Driver")
+                .username("sa")
+                .password("")
+                .build())
 
-    inline fun <reified T> any(cls: Class<T>): T = Mockito.any(T::class.java)
+        transaction {
+            SchemaUtils.createSchema(org.jetbrains.exposed.sql.Schema(Schema.SCHEMA_CUSTOMER))
+            SchemaUtils.createSchema(org.jetbrains.exposed.sql.Schema(Schema.SCHEMA_CONTACT))
+            SchemaUtils.create(CustomerTable)
+            SchemaUtils.create(ContactTable)
+
+            uuid = Customer.new {
+                firstName = "FName"
+                lastName = "LName"
+                email = "customer_new@email.com"
+                phone = "99966-8485"
+            }.id.value
+        }
+    }
+
+    @BeforeEach
+    fun clearDb() {
+        transaction {
+            ContactTable.deleteAll()
+        }
+    }
 
     @Test
-    @DisplayName("Should register a contact on repository for a customer")
-    fun `register contact for customer test`() {
+    @DisplayName("Should register a contact on database")
+    fun `register contact for a customer test`() {
         val contactCreateRequest = createContactCreateRequest()
-
-        val uuid = UUID.randomUUID()
 
         val json = objectMapper.writeValueAsString(contactCreateRequest)
 
-        given(contactService.register(any(UUID::class.java), any(ContactCreateRequest::class.java)))
-                .willReturn(1L)
-
-        val request = post(String.format(CONTACT_API, uuid.toString()) + "/register")
+        val request = post(String.format(CONTACT_API, uuid.toString()))
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(json)
 
-        mvc.perform(request)
+        val id = mvc.perform(request)
                 .andExpect(status().isCreated)
+                .andReturn()
+                .response
+                .contentAsString
 
-        verify(contactService, times(1))
-                .register(any(UUID::class.java), any(ContactCreateRequest::class.java))
-    }
+        val contact = transaction {
+            Contact.findById(id.toLong())
+        }
 
-    @Test
-    @DisplayName("Should return a page of contacts")
-    fun `return a page of contacts test`() {
-        val result = ArrayList<Contact>()
-
-        val uuid = UUID.randomUUID()
+        assertThat(contact).isNotNull
     }
 
 }
