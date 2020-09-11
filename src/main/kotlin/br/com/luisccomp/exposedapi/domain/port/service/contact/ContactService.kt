@@ -14,7 +14,7 @@ interface ContactService {
 
     fun findAll(uuid: UUID, pageable: Pageable): List<Contact>
 
-    fun findById(uuid: UUID, id: Long): Contact?
+    fun findById(uuid: UUID, id: Long): Contact
 
     fun register(uuid: UUID, contactCreateRequest: ContactCreateRequest): Long
 

@@ -5,6 +5,7 @@ import br.com.luisccomp.exposedapi.domain.core.model.response.contact.ContactRes
 import br.com.luisccomp.exposedapi.domain.port.ResourceSchema.ContactResources.CONTACT_PUBLIC_RESOURCE
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
@@ -14,6 +15,7 @@ import javax.validation.Valid
 interface ContactPublicController {
 
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     fun delete(@PathVariable uuid: UUID, @PathVariable id: Long)
 
     @GetMapping

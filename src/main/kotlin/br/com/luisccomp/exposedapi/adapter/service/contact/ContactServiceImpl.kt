@@ -53,7 +53,7 @@ class ContactServiceImpl : ContactService {
         return contacts
     }
 
-    override fun findById(uuid: UUID, id: Long): Contact? {
+    override fun findById(uuid: UUID, id: Long): Contact {
         return transaction {
             Customer.findById(uuid) ?: throw BadRequestException("Customer not found")
 
@@ -77,7 +77,9 @@ class ContactServiceImpl : ContactService {
     }
 
     override fun update(uuid: UUID, contactCreateRequest: ContactCreateRequest, id: Long): Contact {
-        transaction { Customer.findById(uuid) }?: throw BadRequestException("Customer not found")
+        transaction {
+            Customer.findById(uuid)
+        }?: throw BadRequestException("Customer not found")
 
         val contact = transaction {
             Contact.find { ContactTable.id.eq(id) and ContactTable.customerId.eq(uuid) }
